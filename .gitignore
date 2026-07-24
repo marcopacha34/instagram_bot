@@ -1,0 +1,18 @@
+# Build artifacts
+build/
+dist/
+setup/
+__pycache__/
+*.pyc
+
+# Downloaded/external binaries
+chromedriver.exe
+
+# Runtime/user data
+InstagramTakipciPaneli_Veriler/
+*.log
+takipci_oturum.json
+
+# Local tool configs
+.claude/settings.local.json
+.openai/
