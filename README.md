@@ -1,67 +1,165 @@
-<h1 align="center">Instagram Bot</h1>
+<h1 align="center">Burak Hoca Instagram Takipçi Paneli</h1>
 
 <p align="center">
-  <img src="insta_bot.png" alt="Instagram Bot" width="300">
+  <img src="burakhoca_instagram_icon.png" alt="Burak Hoca Instagram Takipçi Paneli" width="220">
 </p>
 
-## Açıklama
+<p align="center">
+  <strong>Instagram takipçi listelerini düzenlemek ve kontrollü şekilde işlemek için geliştirilmiş Windows masaüstü uygulaması.</strong>
+</p>
 
-**Selenium framework'ü kullanılarak geliştirilmiş bir Instagram botu**
+## Uygulama Hakkında
 
-## Özellikler
+Burak Hoca Instagram Takipçi Paneli; Python, Selenium ve Tkinter kullanılarak geliştirilmiştir. Kullanıcı Instagram’a Chrome üzerinden normal şekilde giriş yaptıktan sonra uygulama, açılan takipçiler listesini algılar ve seçilen kullanıcıları işlem tablosuna aktarır.
 
-:large_blue_circle: **Kullanıcı adına göre arama yaparak aranan kullanıcının takipçilerini istenilen miktarda takip etme.**
-<br>
-:large_blue_circle: **İstenilen miktarda takip edilen kişileri takipten çıkarma.**.
-<br>
-:large_blue_circle: **Girilen etiket adına göre istenilen miktarda gönderi beğenme.**
-<br>
+Programın varsayılan dili Türkçedir.
 
-## Diğer Özellikler
+## Temel Özellikler
 
-:large_blue_circle: Türkçe dil desteği.
+- Açılan Instagram takipçiler penceresini otomatik algılama
+- Belirlenen sayıda kullanıcıyı uygulama listesine aktarma
+- Takipçiler penceresi erken kapatılırsa mevcut listeyle devam etme
+- Kullanıcı profillerini Chrome’da sırayla açma
+- İşlemler arasında ayarlanabilir saniye aralığı
+- Canlı geri sayım ve ilerleme çubuğu
+- `Bekliyor`, `Takip edildi`, `Atlandı` ve `Deneme` durumları
+- Duraklatma ve kaldığı yerden devam etme
+- Açık Chrome ve Instagram oturumunu tekrar kullanma
+- Program yeniden açıldığında önceki listeyi geri yükleme
 
-## Ayrıntılar
+## Liste Yönetimi
 
-:large_blue_diamond: İnstagram oturumunuzu açarak yukarıdaki özellikleri kullanabilirsiniz.  
-:large_blue_diamond: Varsayılan uygulama dili Türkçe'dir.
+- Kullanıcı adına göre arama
+- Duruma göre filtreleme
+- Sağ tık ile seçili kullanıcıyı silme
+- Klavyedeki `Delete` tuşuyla kullanıcı silme
+- Tüm listeyi onay alarak temizleme
+- Başarısız işlemleri tekrar kuyruğuna alma
+- Aynı kullanıcıyı tekrar işlemeyi önleme
+- CSV dosyasından kullanıcı aktarma
+- Listeyi CSV olarak dışa aktarma
+- Kullanıcıya çift tıklayarak profili Chrome’da açma
 
-## Yapılandırma Ayarları
+## Güvenlik ve Kontrol
 
-:gear: Proje webdriver olarak Google Chrome tarayıcısını kullanmaktadır. Bu yüzden Chrome'un kurulu olması gerekmektedir.  
- :gear: Chrome'un kullanılabilmesi için Chrome sürümünüzü destekleyen chrome webdriver'ı [webdriver](https://chromedriver.chromium.org/downloads) indirilmeli ve indirilen webdriver program'ın bulunduğu klasör ile aynı dizinde bulunmalıdır.
+- Günlük işlem limiti
+- En fazla 50 kişilik işlem sınırı
+- Gerçek tıklama yapmadan akışı kontrol etmek için deneme modu
+- Hata oluştuğunda tanılama raporu ve ekran görüntüsü
+- Oturum ve işlem geçmişini yerel bilgisayarda saklama
+- Ham ChromeDriver hataları yerine anlaşılır kullanıcı mesajları
 
-- ### Config Ayarları
+> Instagram’ın kullanım koşullarına, işlem sınırlarına ve topluluk kurallarına uymak kullanıcının sorumluluğundadır.
 
-:gear: **time:** **time.sleep()** kullanılan yerler için işlem bekleme sürelerini belirtir. time.sleep() fonksiyonları için ayrı ayrı "birSaniyeUyut(), ikiSaniyeUyut()" gibi metotlar tanımlanmıştır.
+## Arayüz Özellikleri
 
-- ### Windows için paketlerin kurulumu
+- Instagram, gece ve açık tema
+- Açık temada koyu ve okunaklı yazılar
+- Canlı işlem günlüğü
+- Listeye alınan, takip edilen ve atlanan kullanıcı sayaçları
+- Sistem tepsisine küçültme
+- İşlem tamamlandığında masaüstü bildirimi
+- Özgün mor–pembe kamera ikonu
 
+## PC Otomatik Kapatma
+
+Program Windows’un kendi kapatma zamanlayıcısını kullanır.
+
+- Belirlenen dakika sonra bilgisayarı kapatma
+- `23:30` gibi belirli bir saatte bilgisayarı kapatma
+- Planlamadan önce güvenlik onayı
+- Aktif kapatma planını iptal etme
+- Planlanan tarih ve saati arayüzde gösterme
+
+## Sistem Gereksinimleri
+
+- Windows 10 veya Windows 11
+- 64-bit işletim sistemi
+- Google Chrome
+- İnternet bağlantısı
+
+Python, Selenium, Pillow, Pystray ve diğer gerekli Python bileşenleri hazır EXE ve Setup paketinin içinde bulunur.
+
+## Setup ile Kurulum
+
+Hazır kurulum paketi:
+
+```text
+setup/BurakHoca_InstagramPaneli_Setup.exe
 ```
-python -m pip install -r .\requirements.txt
+
+Setup paketi:
+
+- Uygulamayı Program Files klasörüne kurar
+- Masaüstü ve Başlat menüsü kısayollarını oluşturur
+- İsteğe bağlı olarak Windows başlangıcına ekler
+- Kaldırma desteği sağlar
+- Google Chrome bulunamazsa kullanıcıyı bilgilendirir
+
+## Kaynak Koddan Çalıştırma
+
+Gerekli paketleri kurun:
+
+```powershell
+python -m pip install -r requirements.txt
+```
+
+Uygulamayı başlatın:
+
+```powershell
+python takipci_masaustu.py
+```
+
+## EXE Oluşturma
+
+```powershell
+python -m PyInstaller --noconfirm --clean --onefile --windowed `
+  --collect-all selenium `
+  --collect-all pystray `
+  --icon burakhoca_instagram_icon.ico `
+  --add-data "burakhoca_instagram_icon.ico;." `
+  --name BurakHoca_InstagramPaneli `
+  takipci_masaustu.py
+```
+
+Oluşturulan dosya:
+
+```text
+dist/BurakHoca_InstagramPaneli.exe
 ```
 
 ## Kullanım
 
-:small_blue_diamond: Kullanıcıdan bilgi girişi yapılması, mesaj gönderimleri vb. yönergeler ile program sizi yönlendirecektir.
+1. Programı açın.
+2. Takip edilecek kişi sayısını ve işlem aralığını belirleyin.
+3. `Tarayıcıyı Aç ve Başlat` düğmesine basın.
+4. Chrome’da Instagram’a giriş yapın.
+5. İşlem yapmak istediğiniz profilin takipçiler penceresini açın.
+6. Program kullanıcıları kendi tablosuna aktarır.
+7. Liste tamamlandığında veya takipçiler penceresi kapatıldığında mevcut kullanıcılarla işlem başlar.
 
-```
-python insta_bot.py
-```
+## Veri ve Gizlilik
 
-### Notlar
+Oturum bilgileri, işlem geçmişi, CSV verileri ve tanılama dosyaları kullanıcının bilgisayarında saklanır. Uygulama kullanıcı adı veya şifreyi kendi arayüzünde istemez; Instagram girişi doğrudan Chrome üzerinden yapılır.
 
-:small_blue_diamond: işlemlerde hesabınızın engellenmemesi için işlem süre aralıkları uzun süreler olarak ayarlanmıştır.
-<br>
-:small_blue_diamond: Yapılan işlemler için belirlenen işlem süreleri "birSaniyeUyut(), ikiSaniyeUyut()" gibi metotlar ile tanımlanmış olup, değiştirilmek istendiğinde metot içerisindeki time.sleep(x) fonsiyonunun x parametresine saniye cinsinden bir değer vererek güncelleme yapılabilir.
-<br>
-:small_blue_diamond: Sadece Windows işletim sisteminde test edilmiştir.
-<br>
-:small_blue_diamond: Python versiyonu: 3.12
-<br>
-
-### Kullanılan Teknolojiler
+## Kullanılan Teknolojiler
 
 - Python
 - Selenium
-- Javascript
+- Tkinter / ttk
+- Pillow
+- Pystray
+- PyInstaller
+- Inno Setup
+- JavaScript
+
+## Burak Hoca
+
+- **Geliştirici:** Burak ÖZKAN
+- **Instagram:** [@Burakhocafen](https://www.instagram.com/burakhocafen/)
+- **Web:** [www.burakhoca.com](https://www.burakhoca.com)
+- **Telefon / WhatsApp:** [0552 219 87 87](https://wa.me/905522198787)
+
+## Lisans
+
+Lisans ayrıntıları için [LICENSE](LICENSE) dosyasını inceleyebilirsiniz.
