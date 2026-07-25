@@ -34,6 +34,9 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
+from guncelleme_sistemi import GuncellemeYoneticisi
+from lisans_sistemi import LisansYoneticisi
+
 
 def guvenli_hata_metni(exc: Exception, en_fazla: int = 500) -> str:
     """Günlüklere kullanıcı klasörü ve uzun sürücü çıktıları yazılmasını önler."""
@@ -42,6 +45,23 @@ def guvenli_hata_metni(exc: Exception, en_fazla: int = 500) -> str:
     if user_profile:
         text = text.replace(user_profile, "%USERPROFILE%")
     return (text or type(exc).__name__)[:en_fazla]
+
+
+def lisans_kalan_metni(kayit: dict) -> str:
+    """Kayıtlı lisans bilgisinden ekranda gösterilecek kısa durum metnini üretir."""
+    son_kullanma = str(kayit.get("son_kullanma") or "").strip()
+    if not son_kullanma:
+        return "Lisans: Süresiz"
+    try:
+        bitis = datetime.strptime(son_kullanma, "%Y-%m-%d").date()
+    except ValueError:
+        return f"Lisans: {son_kullanma}"
+    kalan = (bitis - datetime.now().date()).days
+    if kalan < 0:
+        return f"Lisans süresi doldu ({son_kullanma})"
+    if kalan == 0:
+        return "Lisans: bugün sona eriyor"
+    return f"Lisans: {kalan} gün kaldı ({son_kullanma})"
 
 
 def uygulama_veri_klasoru() -> Path:
@@ -57,7 +77,7 @@ def uygulama_veri_klasoru() -> Path:
 
 
 class TakipciUygulamasi:
-    VERSION = "3.4.0"
+    VERSION = "3.5.0"
 
     def __init__(self, root: tk.Tk) -> None:
         self.root = root
@@ -1747,13 +1767,141 @@ def tam_ekrani_engelle(root: tk.Tk) -> None:
     root.after(80, windows_stilini_uygula)
 
 
+class LisansEkrani:
+    """İlk aktivasyonu yapar ve geçerli lisans olmadan panelleri açmaz."""
+
+    def __init__(self, root: tk.Tk, manager: LisansYoneticisi) -> None:
+        self.root = root
+        self.manager = manager
+        self.key = tk.StringVar()
+        self.status = tk.StringVar(value="Satın aldığınız lisans anahtarını girin.")
+        pencereyi_temizle(root)
+        root.title("Burak Hoca • Lisans Aktivasyonu")
+        root.geometry("640x460")
+        root.minsize(640, 460)
+        root.maxsize(640, 460)
+        root.configure(bg="#0b0d17")
+        root.protocol("WM_DELETE_WINDOW", root.destroy)
+        uygulama_simgesini_ayarla(root)
+        tam_ekrani_engelle(root)
+
+        card = tk.Frame(
+            root,
+            bg="#151927",
+            highlightbackground="#2b3147",
+            highlightthickness=1,
+            padx=42,
+            pady=34,
+        )
+        card.pack(fill="both", expand=True, padx=42, pady=38)
+        tk.Label(
+            card,
+            text="BURAK HOCA",
+            bg="#151927",
+            fg="#f472b6",
+            font=("Segoe UI", 10, "bold"),
+        ).pack(anchor="w")
+        tk.Label(
+            card,
+            text="Lisans Aktivasyonu",
+            bg="#151927",
+            fg="#ffffff",
+            font=("Segoe UI", 25, "bold"),
+        ).pack(anchor="w", pady=(5, 8))
+        tk.Label(
+            card,
+            text=(
+                "Lisans tek bilgisayarda etkinleşir. Bilgisayar değişikliğinde "
+                "önce eski cihazdan lisansı kaldırabilirsiniz."
+            ),
+            bg="#151927",
+            fg="#aeb5cc",
+            justify="left",
+            wraplength=470,
+            font=("Segoe UI", 10),
+        ).pack(anchor="w", pady=(0, 22))
+        self.entry = tk.Entry(
+            card,
+            textvariable=self.key,
+            bg="#ffffff",
+            fg="#111827",
+            insertbackground="#111827",
+            relief="flat",
+            font=("Consolas", 12),
+        )
+        self.entry.pack(fill="x", ipady=10)
+        self.entry.bind("<Return>", lambda _event: self.etkinlestir())
+        tk.Label(
+            card,
+            textvariable=self.status,
+            bg="#151927",
+            fg="#fbbf24",
+            justify="left",
+            wraplength=470,
+            font=("Segoe UI", 9),
+        ).pack(anchor="w", pady=(12, 16))
+        self.button = tk.Button(
+            card,
+            text="Lisansı Etkinleştir",
+            command=self.etkinlestir,
+            bg="#7c3aed",
+            fg="#ffffff",
+            activebackground="#8b5cf6",
+            activeforeground="#ffffff",
+            relief="flat",
+            cursor="hand2",
+            font=("Segoe UI", 11, "bold"),
+            padx=20,
+            pady=11,
+        )
+        self.button.pack(anchor="w")
+        self.entry.focus_set()
+
+    def etkinlestir(self) -> None:
+        key = self.key.get().strip()
+        if not key:
+            self.status.set("Lütfen lisans anahtarını girin.")
+            return
+        self.button.configure(state="disabled")
+        self.status.set("Lisans sunucusunda doğrulanıyor…")
+
+        def worker() -> None:
+            try:
+                result = self.manager.etkinlestir(key)
+            except Exception as exc:
+                result = None
+                error = guvenli_hata_metni(exc)
+            else:
+                error = ""
+
+            def finished() -> None:
+                self.button.configure(state="normal")
+                if result and result.gecerli:
+                    messagebox.showinfo("Lisans etkin", result.mesaj, parent=self.root)
+                    BaslangicMenusu(self.root, self.manager)
+                    return
+                self.status.set(error or (result.mesaj if result else "Aktivasyon başarısız."))
+
+            self.root.after(0, finished)
+
+        threading.Thread(target=worker, daemon=True).start()
+
+
+_GUNCELLEME_KONTROL_EDILDI = False
+
+
 class BaslangicMenusu:
     """Uygulamanın iki ana modundan birini seçtiren karşılama ekranı."""
 
-    def __init__(self, root: tk.Tk) -> None:
+    def __init__(self, root: tk.Tk, license_manager: LisansYoneticisi | None = None) -> None:
         self.root = root
+        self.license_manager = license_manager or LisansYoneticisi()
+        self.update_manager = GuncellemeYoneticisi(TakipciUygulamasi.VERSION)
         pencereyi_temizle(root)
         root.title("Burak Hoca • Instagram Kontrol Merkezi")
+        # LisansEkrani penceresi 640x460'a sabitlemek için maxsize koyuyor; aynı
+        # root burada yeniden kullanıldığında o tavan kalkmazsa pencere büyüyemez.
+        root.maxsize(root.winfo_screenwidth(), root.winfo_screenheight())
         root.geometry("980x650")
         root.minsize(820, 560)
         root.configure(bg="#0b0d17")
@@ -1812,13 +1960,157 @@ class BaslangicMenusu:
 
         footer = tk.Frame(shell, bg="#0b0d17")
         footer.pack(fill="x", pady=(22, 0))
+
+        footer_iletisim = tk.Frame(footer, bg="#0b0d17")
+        footer_iletisim.pack(fill="x")
         tk.Label(
-            footer,
+            footer_iletisim,
             text="@Burakhocafen   •   www.burakhoca.com   •   0552 219 87 87",
             bg="#0b0d17",
             fg="#77809a",
             font=("Segoe UI", 9),
         ).pack(side="left")
+        tk.Label(
+            footer_iletisim,
+            text=lisans_kalan_metni(self.license_manager.kayitli_bilgi()),
+            bg="#0b0d17",
+            fg="#a78bfa",
+            font=("Segoe UI", 9, "bold"),
+        ).pack(side="right")
+
+        footer_eylemler = tk.Frame(footer, bg="#0b0d17")
+        footer_eylemler.pack(fill="x", pady=(10, 0))
+        tk.Button(
+            footer_eylemler,
+            text="Güncellemeleri Denetle",
+            command=lambda: self.guncelleme_kontrolu(False),
+            bg="#252b3d",
+            fg="#e5e7eb",
+            activebackground="#343b52",
+            activeforeground="#ffffff",
+            relief="flat",
+            cursor="hand2",
+            font=("Segoe UI", 9, "bold"),
+            padx=12,
+            pady=7,
+        ).pack(side="right")
+        tk.Button(
+            footer_eylemler,
+            text="Lisansı Kaldır",
+            command=self.lisansi_kaldir,
+            bg="#3a1c2b",
+            fg="#fda4af",
+            activebackground="#542439",
+            activeforeground="#ffffff",
+            relief="flat",
+            cursor="hand2",
+            font=("Segoe UI", 9, "bold"),
+            padx=12,
+            pady=7,
+        ).pack(side="right", padx=(0, 8))
+        global _GUNCELLEME_KONTROL_EDILDI
+        if not _GUNCELLEME_KONTROL_EDILDI:
+            _GUNCELLEME_KONTROL_EDILDI = True
+            self.root.after(1200, lambda: self.guncelleme_kontrolu(True))
+
+    def lisansi_kaldir(self) -> None:
+        if not messagebox.askyesno(
+            "Lisansı kaldır",
+            "Lisans bu bilgisayardan kaldırılarak başka bir bilgisayarda kullanılabilir hale gelsin mi?",
+            parent=self.root,
+        ):
+            return
+
+        def worker() -> None:
+            result = self.license_manager.kaldir()
+
+            def finished() -> None:
+                if result.gecerli:
+                    messagebox.showinfo("Lisans kaldırıldı", result.mesaj, parent=self.root)
+                    LisansEkrani(self.root, self.license_manager)
+                else:
+                    messagebox.showerror("İşlem başarısız", result.mesaj, parent=self.root)
+
+            self.root.after(0, finished)
+
+        threading.Thread(target=worker, daemon=True).start()
+
+    def guncelleme_kontrolu(self, sessiz: bool) -> None:
+        if not sessiz:
+            messagebox.showinfo(
+                "Güncelleme kontrolü",
+                "Son sürüm denetleniyor. Sonuç kısa süre içinde gösterilecek.",
+                parent=self.root,
+            )
+
+        def worker() -> None:
+            release = self.update_manager.son_surumu_getir()
+
+            def checked() -> None:
+                if not release:
+                    if not sessiz:
+                        messagebox.showinfo(
+                            "Güncel",
+                            f"v{TakipciUygulamasi.VERSION} en güncel sürüm.",
+                            parent=self.root,
+                        )
+                    return
+                if not messagebox.askyesno(
+                    "Yeni sürüm bulundu",
+                    f"v{release['version']} hazır. Doğrulanmış Setup indirilsin ve kurulsun mu?",
+                    parent=self.root,
+                ):
+                    return
+                self.guncellemeyi_indir(release)
+
+            self.root.after(0, checked)
+
+        threading.Thread(target=worker, daemon=True).start()
+
+    def guncellemeyi_indir(self, release: dict) -> None:
+        progress = tk.Toplevel(self.root)
+        progress.title("Güncelleme indiriliyor")
+        progress.geometry("430x145")
+        progress.resizable(False, False)
+        progress.transient(self.root)
+        progress.grab_set()
+        uygulama_simgesini_ayarla(progress)
+        tk.Label(
+            progress,
+            text=f"v{release['version']} indiriliyor ve doğrulanıyor…",
+            font=("Segoe UI", 10, "bold"),
+        ).pack(anchor="w", padx=22, pady=(22, 12))
+        value = tk.IntVar(value=0)
+        bar = ttk.Progressbar(progress, maximum=100, variable=value)
+        bar.pack(fill="x", padx=22)
+
+        def worker() -> None:
+            try:
+                path = self.update_manager.indir(
+                    release, lambda percent: self.root.after(0, value.set, percent)
+                )
+                error = ""
+            except Exception as exc:
+                path = None
+                error = guvenli_hata_metni(exc)
+
+            def finished() -> None:
+                progress.destroy()
+                if not path:
+                    messagebox.showerror("Güncelleme başarısız", error, parent=self.root)
+                    return
+                try:
+                    self.update_manager.kurulumu_baslat(path)
+                except OSError as exc:
+                    messagebox.showerror(
+                        "Kurulum başlatılamadı", guvenli_hata_metni(exc), parent=self.root
+                    )
+                    return
+                self.root.destroy()
+
+            self.root.after(0, finished)
+
+        threading.Thread(target=worker, daemon=True).start()
 
     def menu_karti(
         self, parent, column, number, title, description, accent, command
@@ -2402,7 +2694,7 @@ class MetaApiYonetimPaneli:
 class InstagramYonetimPaneli:
     """Yerel medya dosyalarını kayıtlı Chrome oturumuyla zamanlı yayınlar."""
 
-    VERSION = "3.4.0"
+    VERSION = "3.5.0"
 
     def __init__(self, root: tk.Tk) -> None:
         self.root = root
@@ -3629,12 +3921,31 @@ def ensure_single_instance(root: tk.Tk) -> bool:
     return True
 
 
+def dpi_farkindaligini_ayarla() -> None:
+    """İlk açılışta Windows'un pencereyi yanlış ölçekle çizmesini önler."""
+    if os.name != "nt":
+        return
+    try:
+        ctypes.windll.shcore.SetProcessDpiAwareness(2)  # PROCESS_PER_MONITOR_DPI_AWARE
+    except (AttributeError, OSError):
+        try:
+            ctypes.windll.user32.SetProcessDPIAware()
+        except (AttributeError, OSError):
+            pass
+
+
 if __name__ == "__main__":
+    dpi_farkindaligini_ayarla()
     window = tk.Tk()
     window.withdraw()
     if ensure_single_instance(window):
         window.deiconify()
-        BaslangicMenusu(window)
+        license_manager = LisansYoneticisi()
+        license_status = license_manager.dogrula()
+        if license_status.gecerli:
+            BaslangicMenusu(window, license_manager)
+        else:
+            LisansEkrani(window, license_manager)
         window.mainloop()
     else:
         window.destroy()

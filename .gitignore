@@ -16,3 +16,7 @@ takipci_oturum.json
 # Local tool configs
 .claude/settings.local.json
 .openai/
+
+# Lisans web sitesi (ayrı barındırılıyor, repoya dahil değil)
+lisans_web/
+lisans_web_hosting.zip

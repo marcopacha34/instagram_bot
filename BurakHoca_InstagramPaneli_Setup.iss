@@ -1,5 +1,5 @@
 #define MyAppName "Burak Hoca Instagram Paneli"
-#define MyAppVersion "3.4.0"
+#define MyAppVersion "3.5.0"
 #define MyAppPublisher "Burak ÖZKAN"
 #define MyAppURL "https://www.burakhoca.com"
 #define MyAppExeName "BurakHoca_InstagramPaneli.exe"
