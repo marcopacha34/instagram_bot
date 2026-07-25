@@ -77,7 +77,7 @@ def uygulama_veri_klasoru() -> Path:
 
 
 class TakipciUygulamasi:
-    VERSION = "3.5.0"
+    VERSION = "3.5.1"
 
     def __init__(self, root: tk.Tk) -> None:
         self.root = root
