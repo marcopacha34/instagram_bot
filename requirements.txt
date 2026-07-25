@@ -1,5 +1,4 @@
 ﻿selenium>=4.26,<5
-termcolor>=2.4,<4
 pyinstaller>=6.10,<7
 Pillow>=12,<13
 pystray>=0.19,<1
